@@ -1,0 +1,72 @@
+##### 1. LECTURE PUBLIQUE
+GET /api/categories                      | 200 | count=8
+GET /api/products                        | 200 | count=55
+GET /api/products/1                      | 200 | {"id":1,"name":"SkinCeuticals C E Ferulic","description":"Gold-standard vitamin C antioxidant serum for environmental protection and brightening","price":169.00,"stock":15,"imageUrl":"https://images.unsplash.com/photo-162091656639
+GET /api/products/category/1             | 200 | count=10
+GET /api/products/search?keyword=serum   | 200 | count=5
+GET /api/products/999999                 | 404 | 
+GET /api/categories/1                    | 200 | {"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}
+##### 2. AUTHENTIFICATION
+register nouveau client                  | 200 | {"token":"<JWT>","role":"CLIENT","nom":"Client Test","email":"client1@
+register email déjà utilisé           | 400 | Email déjà utilisé
+login mauvais mot de passe               | 401 | 
+login email inconnu                      | 401 | 
+login admin                              | 200 | {"token":"<JWT>","role":"ADMIN","nom":"Admin","email":"admin@miya.com"}
+login client                             | 200 | {"token":"<JWT>","role":"CLIENT","nom":"Client Test","email":"client1@
+users en base: admin@miya.com ADMIN $2a$;client1@test.tn CLIENT $2a$;
+##### 3. PRODUITS : CRUD
+-- sans token
+POST produit (sans token)                | 200 | {"id":56,"name":"Produit Test","description":"desc","price":12.5,"stock":10,"imageUrl":"","category":{"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}}
+   en base: 56 Produit Test 12.50 10 1;
+GET produit créé                       | 200 | {"id":56,"name":"Produit Test","description":"desc","price":12.50,"stock":10,"imageUrl":"","category":{"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}}
+PUT produit (sans token)                 | 200 | {"id":56,"name":"Produit Modifie","description":"d2","price":15.75,"stock":4,"imageUrl":"","category":{"id":2,"name":"Sunscreens","description":"Advanced UV protection and skin defense"}}
+   en base: 56 Produit Modifie 15.75 4 2;
+DELETE produit (sans token)              | 204 | 
+   en base (doit être vide): 0;
+GET produit supprimé                    | 404 | 
+-- avec token CLIENT
+POST produit (CLIENT)                    | 200 | {"id":57,"name":"PTC","description":"d","price":1,"stock":1,"imageUrl":null,"category":{"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}}
+DELETE produit (CLIENT)                  | 204 | 
+-- avec token ADMIN
+POST produit (ADMIN)                     | 200 | {"id":58,"name":"PTA","description":"d","price":2,"stock":2,"imageUrl":null,"category":{"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}}
+PUT produit (ADMIN)                      | 200 | {"id":58,"name":"PTA2","description":"d","price":3,"stock":3,"imageUrl":null,"category":{"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}}
+DELETE produit (ADMIN)                   | 204 | 
+##### 4. CATÉGORIES : CRUD
+POST catégorie (sans token)             | 200 | {"id":9,"name":"Cat Test","description":"dc"}
+   en base: 9 Cat Test;
+PUT catégorie (sans token)              | 200 | {"id":9,"name":"Cat Modifiee","description":"dc2"}
+   en base: 9 Cat Modifiee dc2;
+DELETE catégorie (sans token)           | 204 | 
+   en base (doit être vide): 0;
+POST catégorie (CLIENT)                 | 200 | {"id":10,"name":"Cat CLIENT","description":"x"}
+POST catégorie (ADMIN)                  | 200 | {"id":11,"name":"Cat ADMIN","description":"x"}
+DELETE catégorie (CLIENT)               | 204 | 
+DELETE catégorie (ADMIN)                | 204 | 
+##### 5. COMMANDES
+GET /api/orders (sans token)             | 403 | {"timestamp":"2026-10-11T10:36:54.324+00:00","status":403,"error":"Forbidden","path":"/api/orders"}
+GET /api/orders (token invalide)         | 403 | {"timestamp":"2026-10-11T10:36:54.391+00:00","status":403,"error":"Forbidden","path":"/api/orders"}
+GET /api/orders (CLIENT)                 | 200 | []
+GET /api/orders/stats (CLIENT)           | 200 | {"totalOrders":0,"totalRevenue":0,"totalProducts":55}
+GET /api/orders (ADMIN)                  | 200 | []
+GET /api/orders/stats (ADMIN)            | 200 | {"totalOrders":0,"totalRevenue":0,"totalProducts":55}
+POST commande (sans token, invité)      | 403 | {"timestamp":"2026-10-11T10:36:54.606+00:00","status":403,"error":"Forbidden","path":"/api/orders"}
+POST commande (CLIENT)                   | 200 | {"id":1,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"
+   stock produit 2 avant=80; après=78;
+   commande en base: 1 Sarra Ben Ali 57.00 PENDING;
+   lignes: 2 2 25.00;6 1 7.00;
+POST commande stock insuffisant          | 400 | {"error":"Stock insuffisant pour: COSRX Advanced Snail 96 Mucin Power Essence"}
+POST commande champ manquant             | 400 | {"error":"Cannot invoke \"Object.toString()\" because the return value of \"java.util.Map.get(Object)\" is null"}
+GET commande par id (ADMIN)              | 200 | {"id":1,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"id"
+GET commandes d'un client (CLIENT)       | 200 | [{"id":1,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"id
+PUT statut (CLIENT)                      | 200 | {"id":1,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"SHIPPED","createdAt":"<T>","orderItems":[{"id"
+PUT statut (ADMIN)                       | 200 | {"id":1,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"CONFIRMED","createdAt":"<T>","orderItems":[{"i
+   statut en base: CONFIRMED;
+PUT statut invalide (ADMIN)              | 500 | {"timestamp":"2026-10-11T10:36:55.455+00:00","status":500,"error":"Internal Server Error","path":"/api/orders/1/status"}
+DELETE commande (CLIENT)                 | 204 | 
+DELETE commande (ADMIN)                  | 204 | 
+   commande supprimée en base: 0;
+##### 6. CORS (origine http://localhost:4200)
+preflight PUT+Authorization : HTTP/1.1 200  | Access-Control-Allow-Origin: * | Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS
+GET avec Origin             : HTTP/1.1 200  | Access-Control-Allow-Origin: *
+GET orders ADMIN avec Origin: HTTP/1.1 200  | Access-Control-Allow-Origin: *
+##### FIN

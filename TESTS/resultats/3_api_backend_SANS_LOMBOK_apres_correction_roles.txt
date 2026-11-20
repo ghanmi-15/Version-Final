@@ -1,0 +1,80 @@
+##### 1. LECTURE PUBLIQUE
+GET /api/categories                      | 200 | count=8
+GET /api/products                        | 200 | count=55
+GET /api/products/1                      | 200 | {"id":1,"name":"SkinCeuticals C E Ferulic","description":"Gold-standard vitamin C antioxidant serum for environmental protection and brightening","price":169.00,"stock":15,"imageUrl":"https://images.unsplash.com/photo-162091656639
+GET /api/products/category/1             | 200 | count=10
+GET /api/products/search?keyword=serum   | 200 | count=5
+GET /api/products/999999                 | 404 | 
+GET /api/categories/1                    | 200 | {"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}
+##### 2. AUTHENTIFICATION
+register nouveau client                  | 200 | {"token":"<JWT>","role":"CLIENT","nom":"Client Test","email":"client1@
+register email déjà utilisé           | 400 | Email déjà utilisé
+login mauvais mot de passe               | 401 | 
+login email inconnu                      | 401 | 
+login admin                              | 200 | {"token":"<JWT>","role":"ADMIN","nom":"Admin","email":"admin@miya.com"}
+login client                             | 200 | {"token":"<JWT>","role":"CLIENT","nom":"Client Test","email":"client1@
+users en base: admin@miya.com ADMIN $2a$;client1@test.tn CLIENT $2a$;
+##### 3. PRODUITS : CRUD
+-- sans token
+POST produit (sans token)                | 403 | {"timestamp":"2026-10-11T21:15:15.475+00:00","status":403,"error":"Forbidden","path":"/api/products"}
+   en base: ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1;
+GET produit créé                       | 404 | {"timestamp":"2026-10-11T21:15:15.645+00:00","status":404,"error":"Not Found","path":"/api/products/"}
+PUT produit (sans token)                 | 403 | {"timestamp":"2026-10-11T21:15:15.676+00:00","status":403,"error":"Forbidden","path":"/api/products/"}
+   en base: ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1;
+DELETE produit (sans token)              | 403 | {"timestamp":"2026-10-11T21:15:15.781+00:00","status":403,"error":"Forbidden","path":"/api/products/"}
+   en base (doit être vide): ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1;
+GET produit supprimé                    | 404 | {"timestamp":"2026-10-11T21:15:15.884+00:00","status":404,"error":"Not Found","path":"/api/products/"}
+-- avec token CLIENT
+POST produit (CLIENT)                    | 403 | {"timestamp":"2026-10-11T21:15:15.961+00:00","status":403,"error":"Forbidden","path":"/api/products"}
+DELETE produit (CLIENT)                  | 403 | {"timestamp":"2026-10-11T21:15:16.018+00:00","status":403,"error":"Forbidden","path":"/api/products/"}
+-- avec token ADMIN
+POST produit (ADMIN)                     | 200 | {"id":56,"name":"PTA","description":"d","price":2,"stock":2,"imageUrl":null,"category":{"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}}
+PUT produit (ADMIN)                      | 200 | {"id":56,"name":"PTA2","description":"d","price":3,"stock":3,"imageUrl":null,"category":{"id":1,"name":"Serums","description":"Innovative concentrates for every skin concern"}}
+DELETE produit (ADMIN)                   | 204 | 
+##### 4. CATÉGORIES : CRUD
+POST catégorie (sans token)             | 403 | {"timestamp":"2026-10-11T21:15:16.350+00:00","status":403,"error":"Forbidden","path":"/api/categories"}
+   en base: ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1;
+PUT catégorie (sans token)              | 403 | {"timestamp":"2026-10-11T21:15:16.514+00:00","status":403,"error":"Forbidden","path":"/api/categories/"}
+   en base: ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1;
+DELETE catégorie (sans token)           | 403 | {"timestamp":"2026-10-11T21:15:16.615+00:00","status":403,"error":"Forbidden","path":"/api/categories/"}
+   en base (doit être vide): ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1;
+POST catégorie (CLIENT)                 | 403 | {"timestamp":"2026-10-11T21:15:16.697+00:00","status":403,"error":"Forbidden","path":"/api/categories"}
+POST catégorie (ADMIN)                  | 200 | {"id":9,"name":"Cat ADMIN","description":"x"}
+DELETE catégorie (CLIENT)               | 403 | {"timestamp":"2026-10-11T21:15:16.804+00:00","status":403,"error":"Forbidden","path":"/api/categories/"}
+DELETE catégorie (ADMIN)                | 204 | 
+##### 5. COMMANDES
+GET /api/orders (sans token)             | 403 | {"timestamp":"2026-10-11T21:15:16.912+00:00","status":403,"error":"Forbidden","path":"/api/orders"}
+GET /api/orders (token invalide)         | 403 | {"timestamp":"2026-10-11T21:15:16.943+00:00","status":403,"error":"Forbidden","path":"/api/orders"}
+GET /api/orders (CLIENT)                 | 403 | {"timestamp":"2026-10-11T21:15:16.980+00:00","status":403,"error":"Forbidden","path":"/api/orders"}
+GET /api/orders/stats (CLIENT)           | 403 | {"timestamp":"2026-10-11T21:15:17.015+00:00","status":403,"error":"Forbidden","path":"/api/orders/stats"}
+GET /api/orders (ADMIN)                  | 200 | []
+GET /api/orders/stats (ADMIN)            | 200 | {"totalRevenue":0,"totalOrders":0,"totalProducts":55}
+POST commande (sans token, invité)      | 200 | {"id":1,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"
+POST commande (CLIENT)                   | 200 | {"id":2,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"
+   stock produit 2 avant=80; après=76;
+   commande en base: 2 Sarra Ben Ali 57.00 PENDING;
+   lignes: 2 2 25.00;6 1 7.00;
+POST commande stock insuffisant          | 400 | {"error":"Stock insuffisant pour: COSRX Advanced Snail 96 Mucin Power Essence"}
+POST commande champ manquant             | 400 | {"error":"Cannot invoke \"Object.toString()\" because the return value of \"java.util.Map.get(Object)\" is null"}
+GET commande par id (ADMIN)              | 200 | {"id":2,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"id"
+GET commandes d'un client (CLIENT)       | 200 | [{"id":2,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"id
+PUT statut (CLIENT)                      | 403 | {"timestamp":"2026-10-11T21:15:18.057+00:00","status":403,"error":"Forbidden","path":"/api/orders/2/status"}
+PUT statut (ADMIN)                       | 200 | {"id":2,"customerName":"Sarra Ben Ali","customerEmail":"sarra@mail.tn","customerPhone":"+216 20 111 222","shippingAddress":"Tunis","totalAmount":57.00,"status":"CONFIRMED","createdAt":"<T>","orderItems":[{"i
+   statut en base: CONFIRMED;
+PUT statut invalide (ADMIN)              | 500 | {"timestamp":"2026-10-11T21:15:18.212+00:00","status":500,"error":"Internal Server Error","path":"/api/orders/2/status"}
+DELETE commande (CLIENT)                 | 403 | {"timestamp":"2026-10-11T21:15:18.232+00:00","status":403,"error":"Forbidden","path":"/api/orders/2"}
+DELETE commande (ADMIN)                  | 204 | 
+   commande supprimée en base: 0;
+##### 6. CORS (origine http://localhost:4200)
+preflight PUT+Authorization : HTTP/1.1 200  | Access-Control-Allow-Origin: * | Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS
+GET avec Origin             : HTTP/1.1 200  | Access-Control-Allow-Origin: *
+GET orders ADMIN avec Origin: HTTP/1.1 200  | Access-Control-Allow-Origin: *
+##### 7. CAS LIMITES : suppressions liées
+POST catégorie de test (ADMIN)          | 200 | {"id":10,"name":"Cat Cascade","description":"x"}
+POST produit dans cette catégorie (ADMIN) | 200 | {"id":57,"name":"Prod Cascade","description":"x","price":5,"stock":5,"imageUrl":null,"category":{"id":10,"name":"Cat Cascade","description":"x"}}
+DELETE catégorie contenant un produit   | 204 | 
+   produit 57 en base après suppression de sa catégorie (1=conservé, 0=supprimé en cascade): 0;
+POST commande avec produit 6 (CLIENT)    | 200 | {"id":3,"customerName":"B","customerEmail":"b@b.tn","customerPhone":"1","shippingAddress":"x","totalAmount":7.00,"status":"PENDING","createdAt":"<T>","orderItems":[{"id":5,"product":{"id":6,"name":"The Ord
+DELETE produit déjà commandé (ADMIN)  | 500 | {"timestamp":"2026-10-11T21:15:18.815+00:00","status":500,"error":"Internal Server Error","path":"/api/products/6"}
+   produit 6 en base après (1=conservé): 1;
+##### FIN

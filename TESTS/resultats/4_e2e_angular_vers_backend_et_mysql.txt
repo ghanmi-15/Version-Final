@@ -1,0 +1,54 @@
+=== A. BOUTIQUE (lecture) — visiteur non connecté ===
+PASS Liste des produits affichée = MySQL  → 55 cartes / 55 lignes en base
+PASS Catégories affichées = MySQL (+ « All »)  → 9 boutons / 8 catégories
+PASS Barre de navigation : Login / Register visibles  → Login Register
+PASS Filtre par catégorie  → 10 cartes / 10 en base
+PASS Recherche « serum »  → 5 résultat(s)
+PASS Consulter un produit (fenêtre de détail = MySQL)  → SkinCeuticals C E Ferulic
+PASS Aucune erreur console / CORS pendant la lecture  → 0 erreur
+
+=== B. COMMANDE par un visiteur non connecté (invité) ===
+PASS Invité : commande acceptée  → ✅ Order #1 confirmed! Thank you Sarra!
+PASS Commande enregistrée dans MySQL  → 1 | Sarra Ben Ali | 25.00 | PENDING
+PASS Stock décrémenté en base  → 80 → 79
+PASS Aucune erreur console  → 0 erreur
+
+=== C. INSCRIPTION puis CONNEXION CLIENT (via l'interface) ===
+PASS Register : message de succès  → Your account has been created successfully! Redirecting...
+PASS Utilisateur en base : rôle CLIENT, mot de passe haché BCrypt  → e2e@test.tn | CLIENT | $2a$10$
+PASS Après register : redirigé vers la boutique avec JWT stocké  → / token=eyJhbGciOiJI…
+PASS Login mauvais mot de passe : message d'erreur  → The email or password is incorrect
+PASS Login CLIENT : redirigé vers la boutique, rôle CLIENT  → / role=CLIENT
+PASS Barre de navigation CLIENT : nom + Logout, pas de lien Admin  → 👤 Client E2E Logout
+PASS Logout : session effacée, Login/Register de retour
+
+=== D. RÔLES : un CLIENT ne peut pas utiliser l'administration ===
+PASS CLIENT → /admin : redirigé vers la boutique (guard)  → /
+PASS Sans token → /admin : redirigé vers /login  → /login
+PASS API : CLIENT ne peut pas créer de produit  → HTTP 403
+PASS API : CLIENT ne peut pas lister toutes les commandes  → HTTP 403
+
+=== E. ADMINISTRATION (ADMIN connecté via l'interface) ===
+PASS Login ADMIN : redirigé vers /admin  → /admin role=ADMIN
+PASS Dashboard = MySQL (produits / commandes / catégories)  → 55/1/8 — revenu 25.00 TND
+PASS READ  — liste admin des produits = MySQL  → 55 lignes
+PASS CREATE — produit enregistré dans MySQL  → 56 | Produit E2E | 12.50 | 7 | 2 | créé depuis Angular | https://example.com/p.jpg
+PASS CREATE — le produit apparaît dans le tableau
+PASS Formulaire d'édition pré-rempli  → Produit E2E / 12.5 / cat 2
+PASS UPDATE — modifications enregistrées dans MySQL  → 56 | Produit E2E modifié | 19.90 | 3 | 2
+PASS UPDATE — tableau rafraîchi
+PASS DELETE — produit supprimé de MySQL  → lignes restantes pour id 56: 0
+PASS DELETE — le produit disparaît de l'interface
+PASS Catégories : liste = MySQL  → 8 lignes
+PASS Catégorie CREATE — enregistrée dans MySQL  → 9 | Cat E2E | desc e2e
+PASS Catégorie UPDATE — enregistrée dans MySQL  → 9 | Cat E2E modifiée
+PASS Catégorie DELETE — supprimée de MySQL
+PASS Commandes : la commande de l'invité est listée  → 1 ligne(s)
+PASS Commande : changement de statut enregistré dans MySQL  → PENDING → SHIPPED
+PASS Commande : suppression enregistrée dans MySQL
+PASS Aucune erreur console / CORS pendant toute la session admin  → 0 erreur
+
+=== F. SESSION EXPIRÉE / JWT INVALIDE ===
+PASS JWT invalide sur /admin : session effacée et retour vers /login  → /login token=null
+
+RÉSULTAT : 41 PASS, 0 FAIL
