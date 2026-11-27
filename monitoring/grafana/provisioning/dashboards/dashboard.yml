@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: "Version-Final"
+    orgId: 1
+    folder: "Version-Final"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
